@@ -1,12 +1,13 @@
+<p align="center">
+  <img width="600" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/wireguard-logo.png">
+</p>
+
+WireGuard is an interesting new VPN protocol that has the potential to bring major change to the VPN industry. 
+In comparison to existing VPN protocols, such as OpenVPN and IPSec, WireGuard may offer faster speeds and better reliability with new and improved encryption standards. 
+This repository aims to help with the installation of Wireguard, tested on a Raspberry Pi 3 B.
 
 
-
-
-
-![](https://lh5.googleusercontent.com/o7TqWF6oMhFjabUwG0Z4eu0zpQVcfdE_17pOfh_r-E5DUMlFOSd4M2UnPtyVfEgXrq5ZpolauPsH0c-eS04zOvmC1oGBXBfI2BZWQCWqArVlZscg-_pyg8scj8BEDNe2ZOgKW_75)
-
-
-## 1. Wireguard installation (Raspberry Pi 2 v1.2 and above)
+## 1. Wireguard installation (Tested on Raspberry Pi 3 B and above)
 
 ```console
 pi@raspberrypi:~ $ sudo apt-get update
@@ -220,13 +221,13 @@ pi@raspberrypi:~/wgkeys $ sudo wg-quick up wg0
 Download and install official Wireguard app: Wireguard beta is available in the [App Store](https://itunes.apple.com/us/app/wireguard/id1441195209?ls=1&mt=8).
 
 <p align="center">
-  <img width="500" src="https://raw.githubusercontent.com/adrianmihalko/raspberrypiwireguard/master/ios-config.jpg">
+  <img width="500" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/ios-config.jpg">
 </p>
 
 **Android configuration**
 
 <p align="center">
-  <img width="460" src="https://raw.githubusercontent.com/adrianmihalko/raspberrypiwireguard/master/android-screen.jpg">
+  <img width="460" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/android-screen.jpg">
 </p>
 
 **Additional INFO:**
@@ -243,23 +244,15 @@ A: You can't have same dhcp range on both sides. There are workarounds, but it i
 
 A: Yes, you need to forward one port, type: UDP. In example we used port 51820.
 
-**Q: Can you make a VM with Wireguard instead of a Raspberry Pi?**
-
-A: Of course you can, there is no restriction, the configuration is the same. Virtual machine, physical machine, doesn’t matter.
-
 **Resources:**
 
 **WireGuard website:**
-https://www.wireguard.com
+ - https://www.wireguard.com
+ - https://www.wireguard.com/install/
+ - https://www.wireguard.com/talks/eindhoven2018-slides.pdf
 
-**WireGuard presentation**
-https://www.wireguard.com/talks/eindhoven2018-slides.pdf
+**Credits
+ - https://github.com/adrianmihalko/raspberrypiwireguard
+ - https://emanuelduss.ch/2018/09/wireguard-vpn-road-warrior-setup/
+ - https://www.ckn.io/blog/2017/12/28/wireguard-vpn-portable-raspberry-pi-setup/
 
-**Actual version of this guide is available at:**
-https://github.com/adrianmihalko/raspberrypiwireguard/
-  
-
-**TODO:**
-
--   Port forwarding on router UDP 51820    
--   Double WARN users for using the right key at the right place
