@@ -56,7 +56,7 @@ pi:~/wgkeys $ ls
 server_private.key server_public.key
 ```
 
-With `cat` command we can view content of the file.
+With `cat` command we can view the content of the generated file.
 
 ```console
 pi:~/wgkeys $ cat server_public.key 
