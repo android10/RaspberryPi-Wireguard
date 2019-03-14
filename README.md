@@ -7,251 +7,232 @@ In comparison to existing VPN protocols, such as OpenVPN and IPSec, WireGuard ma
 This repository aims to help with the installation of Wireguard, tested on a Raspberry Pi 3 B.
 
 
+## 0. This is how our solution look like:
+
+<p align="center">
+  <img width="500" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/portable_vpn_raspberry_pi.png">
+</p>
+
+
 ## 1. Wireguard installation (Tested on Raspberry Pi 3 B and above)
 
 ```console
-pi@raspberrypi:~ $ sudo apt-get update
-pi@raspberrypi:~ $ sudo apt-get upgrade 
-pi@raspberrypi:~ $ sudo apt-get install raspberrypi-kernel-headers
-pi@raspberrypi:~ $ echo "deb http://deb.debian.org/debian/ unstable main" | sudo tee --append /etc/apt/sources.list.d/unstable.list
-pi@raspberrypi:~ $ sudo apt-get install dirmngr 
-pi@raspberrypi:~ $ sudo apt-key adv --keyserver   keyserver.ubuntu.com --recv-keys 8B48AD6246925553 
-pi@raspberrypi:~ $ printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' | sudo tee --append /etc/apt/preferences.d/limit-unstable
-pi@raspberrypi:~ $ sudo apt-get update
-pi@raspberrypi:~ $ sudo apt-get install wireguard 
-pi@raspberrypi:~ $ sudo reboot
+pi:~ $ sudo apt-get update
+pi:~ $ sudo apt-get upgrade 
+pi:~ $ sudo apt-get install raspberrypi-kernel-headers
+pi:~ $ echo "deb http://deb.debian.org/debian/ unstable main" | sudo tee --append /etc/apt/sources.list.d/unstable.list
+pi:~ $ sudo apt-get install dirmngr 
+pi:~ $ sudo apt-key adv --keyserver   keyserver.ubuntu.com --recv-keys 8B48AD6246925553 
+pi:~ $ printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' | sudo tee --append /etc/apt/preferences.d/limit-unstable
+pi:~ $ sudo apt-get update
+pi:~ $ sudo apt-get install wireguard 
+pi:~ $ sudo reboot
 ```
-Raspberry Pi 1, Zero, ZeroW requires [manual compiling](https://github.com/adrianmihalko/raspberrypiwireguard/wiki/Install-WireGuard-on-Raspberry-Pi-1,-2-(not-v1.2),-Zero,-Zero-W).
-
 **Enable ipv4 forwarding then reboot to make changes active:**
 
 ```console
-pi@raspberrypi:~ $ sudo perl -pi -e 's/#{1,}?net.ipv4.ip_forward ?= ?(0|1)/net.ipv4.ip_forward = 1/g' /etc/sysctl.conf 
-pi@raspberrypi:~ $ sudo reboot
+pi:~ $ sudo perl -pi -e 's/#{1,}?net.ipv4.ip_forward ?= ?(0|1)/net.ipv4.ip_forward = 1/g' /etc/sysctl.conf 
+pi:~ $ sudo reboot
 ```
 
-To check if it has been enabled:
+Open ```systctl.conf``` file and make sure ```net.ipv4.ip_forward = 1```:
 
 ```console
-pi@raspberrypi:~ $ sysctl net.ipv4.ip_forward 
+pi:~ $ sudo nano /etc/sysctl.conf
 net.ipv4.ip_forward = 1
 ```
 
-If you get `net.ipv4.ip_forward = 0`, please manually edit `sudo nano /etc/sysctl.conf` and add `net.ipv4.ip_forward = 1`.
 
-
-## 2. Configuring WireGuard
-
-We cover two way of setting up Wireguard and clients:
-
-- manually: that's what we do in this document
-- semi automatic mode via WireGuard [User Management Script](https://github.com/adrianmihalko/raspberrypiwireguard/wiki/User-management-with-Wireguard-User-Management-script)
-
-
-## 3. Generate private and public keys for server and client1
-
+## 2. Generate private and public keys for server
   
 ```console
-pi@raspberrypi:~ $ mkdir wgkeys
-pi@raspberrypi:~ $ cd wgkeys  
-pi@raspberrypi:~/wgkeys $ wg genkey > server_private.key  
+pi:~ $ mkdir wgkeys
+pi:~ $ cd wgkeys  
+pi:~/wgkeys $ wg genkey > server_private.key  
 Warning: writing to world accessible file.
 Consider setting the umask to 077 and trying again.
-
-pi@raspberrypi:~/wgkeys $ wg pubkey > server_public.key < server_private.key
-pi@raspberrypi:~/wgkeys $ wg genkey > client1_private.key  
-Warning: writing to world accessible file.
-Consider setting the umask to 077 and trying again.
-pi@raspberrypi:~/wgkeys $ wg pubkey > client1_public.key < client1_private.key
-pi@raspberrypi:~/wgkeys $ ls
-client1_private.key client1_public.key server_private.key server_public.key
+pi:~/wgkeys $ wg pubkey > server_public.key < server_private.key
+pi:~/wgkeys $ ls
+server_private.key server_public.key
 ```
 
-Use `cat` command  to view content of the file. You need this in the next step.
+With `cat` command we can view content of the file.
 
 ```console
-pi@raspberrypi:~/wgkeys $ cat server_public.key 
-Aj2HHAutB2U0O56jJBdkZ/xgb9pnmUPJ0IeiuACLLmI=
+pi:~/wgkeys $ cat server_public.key 
+Aj2HHAutB2U0O56jJBdkZ/xgb4pnmUPJ0IriuACLLmI=
 ```
+
+
+## 3. Generate private and public keys for a client
+  
+```console
+pi:~/wgkeys $ wg genkey > android10_pixel2_private.key
+Warning: writing to world accessible file.
+Consider setting the umask to 077 and trying again.
+pi:~/wgkeys $ wg pubkey > android10_pixel2_public.key < android10_pixel2_private.key
+pi:~/wgkeys $ ls
+android10_pixel2_private.key android10_pixel2_public.key server_private.key server_public.key
+```
+
+
 ## 4. Setup Wireguard interface on server
 
 ```console
-pi@raspberrypi:~/wgkeys $ sudo nano /etc/wireguard/wg0.conf    
-[Interface]
-Address = 192.168.99.1/24
-ListenPort = 51820
+pi:~ $ sudo vim /etc/wireguard/wg0.conf
+```
 
-PrivateKey = <server_private.key>
+```console
+[Interface]
+Address = 10.200.200.1/24
+SaveConfig = true
 PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+ListenPort = 51820
+PrivateKey = <server_private.key>
 
 [Peer]
-#Client1
-PublicKey = <client1_public.key>
-AllowedIPs = 192.168.99.2/32
+#android10-xps
+PublicKey = <android10_xps_public.key>
+AllowedIPs = 10.200.200.2/32
+
+[Peer]
+#android10-pixel2
+PublicKey = <android10_pixel2_public.key>
+AllowedIPs = 10.200.200.3/32
+
+[Peer]
+#android10-gpd
+PublicKey = <android10_gpd_public.key>
+AllowedIPs = 10.200.200.4/32
 ```
+
 
 ## 5. Start Wireguard
 
 Start Wireguard with `wg-quick` command.
 
 ```console
-pi@raspberrypi:~/wgkeys $ sudo wg-quick up wg0 
+pi:~/wgkeys $ sudo wg-quick up wg0 
 [#] ip link add wg0 type wireguard
 [#] wg setconf wg0 /dev/fd/63
-[#] ip address add 192.168.99.1/24 dev wg0
-[#] ip link set mtu 1420 dev wg0
-[#] ip link set wg0 up
+[#] ip address add 10.200.200.1/24 dev wg0
+[#] ip link set mtu 1420 up dev wg0
+[#] iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 ```
 
 Use `sudo wg` command to check if it is working:
 
 ```console
-pi@raspberrypi:~/wgkeys $ sudo wg 
+pi:~/wgkeys $ sudo wg 
 interface: wg0
-public key: Aj2HHAutB2U0O56jJBdkZ/xgb9pnmUPJ0IeiuACLLmI=
-private key: (hidden)
-listening port: 51820
+  public key: <server_public.key>
+  private key: (hidden)
+  listening port: 51820
 
-peer: ht4+w8Tk28hFQCpXWnL4ftGAu/IwtMvD2yEZ+1hp7zA=
-allowed ips: 192.168.99.2/32
+peer: <android10_xps_private.key>
+  allowed ips: 10.200.200.2/32
+
+peer: <android10_pixel2_private.key>
+  allowed ips: 10.200.200.3/32
+
+peer: <android10_gpd_private.key>
+  allowed ips: 10.200.200.4/32
 ```
 
-You can launch automatically at startup:
+**You can launch automatically at startup:**
 
 ```console
-pi@raspberrypi:~/wgkeys $ sudo systemctl enable wg-quick@wg0  
+pi:~/wgkeys $ sudo systemctl enable wg-quick@wg0  
 Created symlink /etc/systemd/system/multi-user.target.wants/wg-quick@wg0.service → /lib/systemd/system/wg-quick@.service.
 ```
 
+
 ## 6. Setup clients
 
-You will need to install wireguard on clients as well.  Wireguard does not have separate apps for server and client, just differences in the configuration file. 
-On Debian based distros (Ubuntu, Debian etc.) you just run `sudo apt-get install wireguard`.
+You will need to install wireguard on clients as well. 
+**IMPORTANT:** Wireguard does not have separate apps for server and client, just differences in the configuration file. 
 
-For installing on other systems, please visit Wireguard [website](https://www.wireguard.com/install/). 
+**Installing Wireguard Client Tools.**
 
-We generated credentials for one user above.
+ - Arch Linux -> `sudo pacman -S wireguard-tools linux-headers`.
+ - On Debian based distros -> `sudo apt-get install wireguard`.
+ - Other platforms -> [Wireguard Website](https://www.wireguard.com/install/). 
+ - Android -> [Google Play](https://play.google.com/store/apps/details?id=com.wireguard.android).
+ - iOS -> [App Store](https://itunes.apple.com/us/app/wireguard/id1441195209?ls=1&mt=8).
 
-Example configuration on client:
+**My Android Pixel 2 client EXAMPLE.**
+
+After intalling the Android Client from the link above, here is the Example configuration we should use (same applies for other clients you want to setup up):
+
+```wireguard-android10-pixel2.conf```
 
 ```console
-adrian@MacBook-Pro:/Volumes$ sudo mkdir /etc/wireguard/
-adrian@MacBook-Pro:/Volumes$ sudo nano /etc/wireguard/wg0.conf 
 [Interface]
-Address = 192.168.99.2/24
-PrivateKey = <client1_private.key>
+Address = 10.200.200.3/24
+PrivateKey = <android10_pixel2_private.key>
+DNS = 8.8.8.8
 
 [Peer]
-Endpoint = your.publicdns.com:51820
 PublicKey = <server_public.key>
-AllowedIPs = 192.168.99.1/32, 192.168.1.0/24
+AllowedIPs = 0.0.0.0/0, ::/0
+Endpoint = my.ddns.address.com:51820
 ```
 
-**192.168.1.0/24** is my remote LAN subnet, if you add here your own network, you can access remote LAN devices from the client.
+**IMPORTANT:** Using the catch-all **AllowedIPs = 0.0.0.0/0, ::/0** will forward all **IPv4 (0.0.0.0/0)** and **IPv6 (::/0)** traffic over the **VPN**.
 
-```console
-adrian@MacBook-Pro:/Volumes$ sudo wg-quick up wg0 
-Warning: '/private/etc/wireguard/wg0.conf' is world accessible
-
-
-[#] wireguard-go utun
-INFO: (utun3) 2018/12/19 00:14:21 Starting wireguard-go version 0.0.20181018
-
-[+] Interface for wg0 is utun3
-[#] wg setconf utun3 /dev/fd/63
-[#] ifconfig utun3 inet 192.168.99.2/24 192.168.99.2 alias
-[#] ifconfig utun3 mtu 1416
-[#] ifconfig utun3 up
-[#] route -q -n add -inet 192.168.99.1/32 -interface utun3
-[+] Backgrounding route monitor
-```
-
-Check if Wireguard is working:
-
-```console
-adrian@MacBook-Pro:/Volumes$ sudo wg
-interface: utun3
-public key: ht4+w8Tk28hFQCpXWnL4ftGAu/IwtMvD2yEZ+1hp7zA=
-private key: (hidden)
-listening port: 53694
-
-peer: Aj2HHAutB2U0O56jJBdkZ/xgb9pnmUPJ0IeiuACLLmI=
-endpoint: your.publicdns.com:51820
-allowed ips: 192.168.99.1/32
-
-adrian@MacBook-Pro:/Volumes$ ping 192.168.99.1
-
-PING 192.168.99.1 (192.168.99.1): 56 data bytes
-64 bytes from 192.168.99.1: icmp_seq=0 ttl=64 time=13.447 ms
-^C
---- 192.168.99.1 ping statistics ---
-
-3 packets transmitted, 3 packets received, 0.0% packet loss
-round-trip min/avg/max/stddev = 4.565/8.495/13.447/3.697 ms
-```
-
-**Mobile clients (iOS, Android)**
-
-Generate key pairs:
-
-```console
-pi@raspberrypi:~/wgkeys $ wg genkey > client2_private.key
-Warning: writing to world accessible file.
-Consider setting the umask to 077 and trying again.
-
-pi@raspberrypi:~/wgkeys $ wg pubkey > client2_public.key < client2_private.key
-```
-
-To the bottom of your config add:
-
-```console
-pi@raspberrypi:~/wgkeys $ sudo nano /etc/wireguard/wg0.conf
-[Peer]
-#Client2
-PublicKey = <client2_public.key>
-AllowedIPs = 192.168.99.2/32
-
-pi@raspberrypi:~/wgkeys $ sudo wg-quick down wg0
-pi@raspberrypi:~/wgkeys $ sudo wg-quick up wg0
-```
-
-**iOS configuration**
-
-Download and install official Wireguard app: Wireguard beta is available in the [App Store](https://itunes.apple.com/us/app/wireguard/id1441195209?ls=1&mt=8).
+**Screenshots for the Android Application**
 
 <p align="center">
-  <img width="500" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/ios-config.jpg">
+  <img width="500" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/android_setup01.png">
 </p>
-
-**Android configuration**
 
 <p align="center">
-  <img width="460" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/android-screen.jpg">
+  <img width="500" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/android_setup02.png">
 </p>
 
-**Additional INFO:**
 
-If you put **0.0.0.0/0** in AllowedIPs on clients, all traffic will be redirected trough this interface.
+## Port Forwarding 
 
-**Q&A:**
+You need to forward one port in your router:
+  - **Type:** UDP. 
+  - **Port:** 51820.
 
-**Q: No network problems if the lans are in the same dhcp range?**
 
-A: You can't have same dhcp range on both sides. There are workarounds, but it is not trivial to set up.
+## Useful Commands:
 
-**Q: Do you need port forward?**
+```console
+# See WireGuard current state:
+pi:~ $ sudo wg 
 
-A: Yes, you need to forward one port, type: UDP. In example we used port 51820.
+# Bring up the interface:
+pi:~ $ sudo wg-quick down wg0
 
-**Resources:**
+# Close the interface:
+pi:~ $ sudo wg-quick down wg0
 
-**WireGuard website:**
+# Configure the wg0 interface:
+pi:~ $ sudo vim /etc/wireguard/wg0.conf
+
+# Check current service status:
+pi:~ $ systemctl status wg-quick@wg0.service
+```
+
+
+## Resources:
+
+### WireGuard website:
  - https://www.wireguard.com
  - https://www.wireguard.com/install/
  - https://www.wireguard.com/talks/eindhoven2018-slides.pdf
 
-**Credits
+### Arch Linux wiki:
+ - https://wiki.archlinux.org/index.php/WireGuard
+ - https://wiki.archlinux.org/index.php/WireGuard#Server_2
+
+
+
+## Credits
  - https://github.com/adrianmihalko/raspberrypiwireguard
  - https://emanuelduss.ch/2018/09/wireguard-vpn-road-warrior-setup/
  - https://www.ckn.io/blog/2017/12/28/wireguard-vpn-portable-raspberry-pi-setup/
