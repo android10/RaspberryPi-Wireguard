@@ -7,7 +7,7 @@ In comparison to existing VPN protocols, such as OpenVPN and IPSec, WireGuard ma
 This repository aims to help with the installation of Wireguard, tested on a Raspberry Pi 3 B.
 
 
-## 0. This is how our solution look like:
+## 0. This is how our solution looks like:
 
 <p align="center">
   <img width="500" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/portable_vpn_raspberry_pi.png">
