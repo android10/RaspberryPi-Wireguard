@@ -191,6 +191,12 @@ Endpoint = my.ddns.address.com:51820
   <img width="500" src="https://raw.githubusercontent.com/android10/RaspberryPi-Wireguard/master/android_setup02.png">
 </p>
 
+**Arch Linux:**
+- Configure Wireguard -> [Wireguard Arch Linux Wiki](https://wiki.archlinux.org/index.php/WireGuard). 
+
+**Other clients:**
+- Configure Wireguard -> [External Website](https://www.stavros.io/posts/how-to-configure-wireguard/). 
+
 
 ## Port Forwarding 
 
