@@ -155,7 +155,11 @@ You will need to install wireguard on clients as well.
 
 **Installing Wireguard Client Tools.**
 
- - Arch Linux -> `sudo pacman -S wireguard-tools linux-headers`.
+ - Arch Linux -> `sudo pacman -S wireguard-tools`.
+   - Install the appropriate kernel module:
+     - `sudo pacman -S wireguard-arch` for the default linux kernel.
+     - `sudo pacman -S wireguard-lts` for the LTS linux-lts kernel.
+     - `sudo pacman -S wireguard-dkms` for the DKMS variant for other kernels.
  - On Debian based distros -> `sudo apt-get install wireguard`.
  - Other platforms -> [Wireguard Website](https://www.wireguard.com/install/). 
  - Android -> [Google Play](https://play.google.com/store/apps/details?id=com.wireguard.android).
